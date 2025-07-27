@@ -17,12 +17,10 @@ Copy these commands and run them in your terminal:
 
 ```bash
 cd "f:\ALL CODE\HireFlow Project"
-git remote add origin https://github.com/YOUR_USERNAME/hireflow.git
+git remote add origin https://github.com/Abhijeet17o/hireflow.git
 git branch -M main
 git push -u origin main
 ```
-
-Replace `YOUR_USERNAME` with your actual GitHub username.
 
 ## Step 3: Deploy to Netlify
 
