@@ -16,6 +16,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google-cloud/local-auth": "^3.0.1",
     "@neondatabase/serverless": "^1.0.1",
+    "@netlify/functions": "^4.1.15",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/uuid": "^10.0.0",
     "date-fns": "^4.1.0",

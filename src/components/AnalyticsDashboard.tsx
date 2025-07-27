@@ -23,7 +23,7 @@ export function AnalyticsDashboard() {
   }, []);
 
   const loadAnalyticsData = () => {
-    const funnel = analytics.getConversionFunnel();
+    const funnel = analytics.getLocalConversionFunnel();
     const feedback = userFeedback.getFeedbackStats();
     const allFeedbackData = userFeedback.getAllFeedback();
     
@@ -39,7 +39,7 @@ export function AnalyticsDashboard() {
 
   const clearAllData = () => {
     if (window.confirm('Are you sure you want to clear ALL analytics and feedback data? This cannot be undone.')) {
-      analytics.clearAllEvents();
+      analytics.clearAllAnalytics();
       userFeedback.clearAllFeedback();
       loadAnalyticsData();
       alert('All data cleared successfully.');
