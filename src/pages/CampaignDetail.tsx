@@ -30,11 +30,13 @@ import { BulkEmailModal } from '../components/BulkEmailModal';
 import { CampaignSettingsModal } from '../components/CampaignSettingsModal';
 import { CandidateDetailModal } from '../components/CandidateDetailModal';
 import { type JobCampaign, type Candidate, type CandidateUpload } from '../types';
-import { storageAPI } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
+import { storageAPI } from '../utils/storage'; // Temporary - will be removed in complete migration
 
 export function CampaignDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getUserCampaignsData } = useAuth();
   
   const [campaign, setCampaign] = useState<JobCampaign | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,10 +86,38 @@ export function CampaignDetail() {
       
       try {
         console.log(`Loading campaign with ID: ${id}`);
-        const campaignData = await storageAPI.getCampaignById(id);
+        console.log(`Looking for campaign with ID: ${id}`);
+        
+        // Get all campaigns from database and find the specific one
+        const allCampaigns = await getUserCampaignsData();
+        console.log(`Available campaign IDs:`, allCampaigns.map(c => ({ id: c.id, title: c.title })));
+        
+        const campaignData = allCampaigns.find(campaign => campaign.id === id);
+        
         if (campaignData) {
           console.log(`Successfully loaded campaign: ${campaignData.title}`);
-          setCampaign(campaignData);
+          
+          // Convert database Campaign to JobCampaign format
+          const jobCampaign: JobCampaign = {
+            id: campaignData.id,
+            title: campaignData.title,
+            description: campaignData.job_description,
+            skills: [], // Initialize empty - not stored in database currently
+            location: campaignData.location,
+            department: campaignData.department,
+            openings: campaignData.openings,
+            createdAt: new Date().toISOString(), // Use current date as placeholder
+            candidates: [], // Initialize empty - will be loaded separately if needed
+            stages: [
+              { id: 'sourced', name: 'Sourced', instructions: 'Initial candidate sourcing', order: 1, color: 'blue' },
+              { id: 'screening', name: 'Screening', instructions: 'Phone/video screening call', order: 2, color: 'yellow' },
+              { id: 'interview', name: 'Interview', instructions: 'Technical interview', order: 3, color: 'purple' },
+              { id: 'hired', name: 'Hired', instructions: 'Successfully hired', order: 4, color: 'green' },
+              { id: 'rejected', name: 'Rejected', instructions: 'Not selected', order: 5, color: 'red' },
+            ]
+          };
+          
+          setCampaign(jobCampaign);
         } else {
           console.error(`Campaign not found with ID: ${id}`);
           // Redirect to dashboard if campaign not found
