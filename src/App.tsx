@@ -10,6 +10,7 @@ import { AccountSettings } from './pages/AccountSettings';
 import { LoginPage } from './pages/LoginPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { LandingPage } from './pages/LandingPage';
+import { DatabaseTest } from './components/DatabaseTest';
 import './index.css';
 
 function App() {
@@ -47,6 +48,8 @@ function App() {
           } />
         </Routes>
       </Router>
+      {/* Temporary database test component */}
+      <DatabaseTest />
     </AuthProvider>
   );
 }
