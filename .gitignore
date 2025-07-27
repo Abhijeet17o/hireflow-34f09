@@ -34,6 +34,7 @@ azure-functions-nodejs/
 azure-logic-apps/
 *.ps1
 !github-setup.ps1
+!github-setup.bat
 
 # Documentation (keep only main README and deployment guides)
 AZURE_*.md
