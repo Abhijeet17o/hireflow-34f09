@@ -173,21 +173,35 @@ export function useUserProfile() {
  * Hook for local storage fallback when database is not available
  */
 export function useLocalStorageData() {
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [candidates, setCandidates] = useState<{ [campaignId: string]: any[] }>({});
 
+  const getUserStorageKey = (type: 'campaigns' | 'candidates') => {
+    if (!user?.id) return null;
+    return `hireflow_${type}_${user.id}`;
+  };
+
   const loadLocalData = () => {
+    if (!user?.id) return;
+    
     try {
-      // Load campaigns from localStorage
-      const storedCampaigns = localStorage.getItem('hireflow_campaigns');
-      if (storedCampaigns) {
-        setCampaigns(JSON.parse(storedCampaigns));
+      // Load campaigns from localStorage (user-specific)
+      const campaignsKey = getUserStorageKey('campaigns');
+      if (campaignsKey) {
+        const storedCampaigns = localStorage.getItem(campaignsKey);
+        if (storedCampaigns) {
+          setCampaigns(JSON.parse(storedCampaigns));
+        }
       }
 
-      // Load candidates from localStorage
-      const storedCandidates = localStorage.getItem('hireflow_candidates');
-      if (storedCandidates) {
-        setCandidates(JSON.parse(storedCandidates));
+      // Load candidates from localStorage (user-specific)
+      const candidatesKey = getUserStorageKey('candidates');
+      if (candidatesKey) {
+        const storedCandidates = localStorage.getItem(candidatesKey);
+        if (storedCandidates) {
+          setCandidates(JSON.parse(storedCandidates));
+        }
       }
     } catch (error) {
       console.error('Error loading local data:', error);
@@ -195,10 +209,16 @@ export function useLocalStorageData() {
   };
 
   const saveLocalCampaign = (campaign: any) => {
+    if (!user?.id) return false;
+    
     try {
       const updatedCampaigns = [...campaigns, campaign];
       setCampaigns(updatedCampaigns);
-      localStorage.setItem('hireflow_campaigns', JSON.stringify(updatedCampaigns));
+      
+      const campaignsKey = getUserStorageKey('campaigns');
+      if (campaignsKey) {
+        localStorage.setItem(campaignsKey, JSON.stringify(updatedCampaigns));
+      }
       return true;
     } catch (error) {
       console.error('Error saving local campaign:', error);
@@ -207,6 +227,8 @@ export function useLocalStorageData() {
   };
 
   const saveLocalCandidate = (candidate: any) => {
+    if (!user?.id) return false;
+    
     try {
       const campaignId = candidate.campaignId;
       const updatedCandidates = {
@@ -214,7 +236,11 @@ export function useLocalStorageData() {
         [campaignId]: [...(candidates[campaignId] || []), candidate],
       };
       setCandidates(updatedCandidates);
-      localStorage.setItem('hireflow_candidates', JSON.stringify(updatedCandidates));
+      
+      const candidatesKey = getUserStorageKey('candidates');
+      if (candidatesKey) {
+        localStorage.setItem(candidatesKey, JSON.stringify(updatedCandidates));
+      }
       return true;
     } catch (error) {
       console.error('Error saving local candidate:', error);
@@ -223,8 +249,10 @@ export function useLocalStorageData() {
   };
 
   useEffect(() => {
-    loadLocalData();
-  }, []);
+    if (user?.id) {
+      loadLocalData();
+    }
+  }, [user?.id]);
 
   return {
     campaigns,

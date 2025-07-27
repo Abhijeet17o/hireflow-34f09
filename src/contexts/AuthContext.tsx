@@ -2,8 +2,6 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { 
   saveUser, 
   getUser, 
-  updateUserOnboarding, 
-  saveUserProfile,
   getUserProfile,
   saveCampaign,
   getUserCampaigns,
@@ -30,8 +28,6 @@ interface AuthContextType {
   login: (credential: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
-  needsOnboarding: boolean;
-  completeOnboarding: (profileData?: any) => Promise<void>;
   
   // Data management methods
   saveCampaignData: (campaignData: any) => Promise<boolean>;
@@ -49,23 +45,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Initialize database on app start
-    initializeDatabase().catch(console.error);
-    
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem('hireflow_user');
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
-    
-    if (savedUser) {
-      try {
-        const userData = JSON.parse(savedUser);
-        userData.onboardingCompleted = onboardingCompleted === 'true';
-        setUser(userData);
-      } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('hireflow_user');
+    const initAuth = async () => {
+      console.log('🔐 Initializing authentication...');
+      
+      // Initialize database tables
+      const dbInitialized = await initializeDatabase();
+      if (dbInitialized) {
+        console.log('✅ Database connected and tables ready');
+      } else {
+        console.warn('⚠️ Database not available - using local storage mode');
       }
-    }
-    setIsLoading(false);
+      
+      // Check if user is already logged in
+      const savedUser = localStorage.getItem('hireflow_user');
+      
+      if (savedUser) {
+        try {
+          const userData = JSON.parse(savedUser);
+          userData.onboardingCompleted = true; // Always true now (no onboarding)
+          console.log('👤 Found stored user:', userData.email);
+          setUser(userData);
+        } catch (error) {
+          console.error('Error parsing saved user:', error);
+          localStorage.removeItem('hireflow_user');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credential: string) => {
@@ -89,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: payload.name,
         picture: payload.picture,
         verified_email: payload.email_verified,
-        onboardingCompleted: dbUser?.onboarding_completed || false,
+        onboardingCompleted: true, // Skip onboarding completely
       };
 
       // Save user to database
@@ -100,11 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: userData.name,
         picture: userData.picture,
         verified_email: userData.verified_email,
-        onboarding_completed: userData.onboardingCompleted,
+        onboarding_completed: true, // Mark as completed immediately
       });
 
       if (savedUser) {
-        userData.onboardingCompleted = savedUser.onboarding_completed || false;
+        userData.onboardingCompleted = true; // Always true now
       }
 
       console.log('Login successful, setting user state');
@@ -124,7 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem('hireflow_user');
     localStorage.removeItem('hireflow_token');
-    localStorage.removeItem('onboardingCompleted');
     localStorage.removeItem('accountSettings');
     
     // Sign out from Google (optional, may not be available)
@@ -135,45 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.log('Google logout not available');
-    }
-  };
-
-  const completeOnboarding = async (profileData?: any) => {
-    if (user) {
-      try {
-        // If profile data is provided, save it first
-        if (profileData) {
-          const userProfile: UserProfile = {
-            user_id: user.id,
-            full_name: profileData.fullName,
-            job_title: profileData.jobTitle,
-            company: profileData.company,
-            company_size: profileData.companySize,
-            industry: profileData.industry,
-            phone: profileData.phone,
-            profile_completed: true
-          };
-
-          const profileSaved = await saveUserProfile(userProfile);
-          console.log('Profile save result:', profileSaved);
-        }
-
-        // Update in database
-        await updateUserOnboarding(user.email, true);
-        
-        // Update local state
-        const updatedUser = { ...user, onboardingCompleted: true };
-        setUser(updatedUser);
-        localStorage.setItem('hireflow_user', JSON.stringify(updatedUser));
-        localStorage.setItem('onboardingCompleted', 'true');
-      } catch (error) {
-        console.error('Error completing onboarding:', error);
-        // Fallback to local update
-        const updatedUser = { ...user, onboardingCompleted: true };
-        setUser(updatedUser);
-        localStorage.setItem('hireflow_user', JSON.stringify(updatedUser));
-        localStorage.setItem('onboardingCompleted', 'true');
-      }
     }
   };
 
@@ -274,8 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     isAuthenticated: !!user,
-    needsOnboarding: !!user && !user.onboardingCompleted,
-    completeOnboarding,
     saveCampaignData,
     getUserCampaignsData,
     saveCandidateData,

@@ -10,10 +10,25 @@ export interface StorageAPI {
 }
 
 class LocalStorageAPI implements StorageAPI {
-  private readonly CAMPAIGNS_KEY = 'hireflow_campaigns';
+  private getUserId(): string {
+    const user = localStorage.getItem('hireflow_user');
+    if (user) {
+      try {
+        const userData = JSON.parse(user);
+        return userData.id || 'anonymous';
+      } catch {
+        return 'anonymous';
+      }
+    }
+    return 'anonymous';
+  }
+
+  private getCampaignsKey(): string {
+    return `hireflow_campaigns_${this.getUserId()}`;
+  }
 
   async getCampaigns(): Promise<any[]> {
-    const data = localStorage.getItem(this.CAMPAIGNS_KEY);
+    const data = localStorage.getItem(this.getCampaignsKey());
     return data ? JSON.parse(data) : [];
   }
 
@@ -42,7 +57,7 @@ class LocalStorageAPI implements StorageAPI {
     
     console.log(`Saving campaign with ID: ${finalId}, Title: ${campaign.title}`);
     campaigns.push(newCampaign);
-    localStorage.setItem(this.CAMPAIGNS_KEY, JSON.stringify(campaigns));
+    localStorage.setItem(this.getCampaignsKey(), JSON.stringify(campaigns));
     return newCampaign;
   }
 
@@ -52,14 +67,14 @@ class LocalStorageAPI implements StorageAPI {
     if (index === -1) throw new Error('Campaign not found');
     
     campaigns[index] = { ...campaigns[index], ...updates };
-    localStorage.setItem(this.CAMPAIGNS_KEY, JSON.stringify(campaigns));
+    localStorage.setItem(this.getCampaignsKey(), JSON.stringify(campaigns));
     return campaigns[index];
   }
 
   async deleteCampaign(id: string): Promise<void> {
     const campaigns = await this.getCampaigns();
     const filtered = campaigns.filter(c => c.id !== id);
-    localStorage.setItem(this.CAMPAIGNS_KEY, JSON.stringify(filtered));
+    localStorage.setItem(this.getCampaignsKey(), JSON.stringify(filtered));
   }
 
   async getCampaignById(id: string): Promise<any | null> {
@@ -87,7 +102,7 @@ const initializeMockData = async () => {
   // No mock data will be created for users
   if (campaigns.length === 0) {
     console.log('Initializing empty campaigns array...');
-    localStorage.setItem('hireflow_campaigns', JSON.stringify([]));
+    // The api will handle user-specific storage internally
     console.log('Clean initialization complete - no mock data added');
   } else {
     console.log(`Found ${campaigns.length} existing campaigns, skipping initialization`);
@@ -205,9 +220,22 @@ export const storageAPI = new LocalStorageAPI();
 // Utility function to reset all data (for debugging)
 export const resetStorageData = async () => {
   console.log('Resetting all storage data...');
-  localStorage.removeItem('hireflow_campaigns');
-  // Initialize with empty array - no mock data
-  localStorage.setItem('hireflow_campaigns', JSON.stringify([]));
+  
+  // Get current user ID
+  const user = localStorage.getItem('hireflow_user');
+  let userId = 'anonymous';
+  if (user) {
+    try {
+      const userData = JSON.parse(user);
+      userId = userData.id || 'anonymous';
+    } catch {
+      userId = 'anonymous';
+    }
+  }
+  
+  const userCampaignsKey = `hireflow_campaigns_${userId}`;
+  localStorage.removeItem(userCampaignsKey);
+  localStorage.setItem(userCampaignsKey, JSON.stringify([]));
   console.log('Storage data reset complete - clean slate');
 };
 

@@ -72,11 +72,13 @@ export interface Candidate {
 export async function createTables() {
   const db = initDatabase();
   if (!db) {
-    console.warn('Database not initialized - using local storage fallback');
-    return;
+    console.warn('Database not initialized - DATABASE_URL missing');
+    return false;
   }
 
   try {
+    console.log('🔧 Creating database tables...');
+    
     // Users table
     await db`
       CREATE TABLE IF NOT EXISTS users (
@@ -85,33 +87,35 @@ export async function createTables() {
         name VARCHAR(255) NOT NULL,
         picture TEXT,
         verified_email BOOLEAN DEFAULT false,
-        onboarding_completed BOOLEAN DEFAULT false,
+        onboarding_completed BOOLEAN DEFAULT true,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('✅ Users table created/verified');
 
-    // User profiles table (onboarding data)
+    // User profiles table (optional onboarding data)
     await db`
       CREATE TABLE IF NOT EXISTS user_profiles (
-        user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id),
-        full_name VARCHAR(255) NOT NULL,
-        job_title VARCHAR(255) NOT NULL,
-        company VARCHAR(255) NOT NULL,
-        company_size VARCHAR(100) NOT NULL,
-        industry VARCHAR(255) NOT NULL,
+        user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        full_name VARCHAR(255),
+        job_title VARCHAR(255),
+        company VARCHAR(255),
+        company_size VARCHAR(100),
+        industry VARCHAR(255),
         phone VARCHAR(50),
-        profile_completed BOOLEAN DEFAULT true,
+        profile_completed BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('✅ User profiles table created/verified');
 
     // Campaigns table
     await db`
       CREATE TABLE IF NOT EXISTS campaigns (
         id VARCHAR(255) PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         title VARCHAR(255) NOT NULL,
         department VARCHAR(255) NOT NULL,
         location VARCHAR(255) NOT NULL,
@@ -125,13 +129,14 @@ export async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('✅ Campaigns table created/verified');
 
     // Candidates table
     await db`
       CREATE TABLE IF NOT EXISTS candidates (
         id VARCHAR(255) PRIMARY KEY,
-        campaign_id VARCHAR(255) NOT NULL REFERENCES campaigns(id),
-        user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        campaign_id VARCHAR(255) NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
         phone VARCHAR(50),
@@ -143,10 +148,13 @@ export async function createTables() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    console.log('✅ Candidates table created/verified');
 
-    console.log('All database tables created/verified');
+    console.log('🎉 All database tables created successfully!');
+    return true;
   } catch (error) {
-    console.error('Error creating database tables:', error);
+    console.error('❌ Error creating database tables:', error);
+    return false;
   }
 }
 
@@ -366,5 +374,24 @@ export async function getCampaignCandidates(campaignId: string): Promise<Candida
 
 // Initialize database on app start
 export async function initializeDatabase() {
-  await createTables();
+  console.log('🚀 Initializing HireFlow database...');
+  console.log('📍 Database URL configured:', !!DATABASE_URL);
+  
+  if (!DATABASE_URL || DATABASE_URL.includes('${')) {
+    console.warn('⚠️ Database URL not properly configured. Using local storage fallback.');
+    return false;
+  }
+  
+  try {
+    const success = await createTables();
+    if (success) {
+      console.log('🎉 Database initialization completed successfully!');
+    } else {
+      console.warn('⚠️ Database initialization failed. Using local storage fallback.');
+    }
+    return success;
+  } catch (error) {
+    console.error('❌ Database initialization error:', error);
+    return false;
+  }
 }
