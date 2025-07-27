@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ArrowLeft, Upload, Plus, X } from 'lucide-react';
 import { type CreateCampaignForm } from '../types';
-import { storageAPI } from '../utils/storage';
+import { useAuth } from '../contexts/AuthContext';
 import { azureFunctionsService, AzureFunctionsService } from '../services/azureFunctions';
 
 export function CreateCampaign() {
   const navigate = useNavigate();
+  const { saveCampaignData } = useAuth();
   const [skillInput, setSkillInput] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
   const [jdFile, setJdFile] = useState<File | null>(null);
@@ -60,9 +61,9 @@ export function CreateCampaign() {
         stages: defaultStages,
       };
 
-      // Save campaign to local storage first
-      const savedCampaign = await storageAPI.saveCampaign(campaignData);
-      console.log('Campaign saved:', savedCampaign);
+      // Save campaign to database
+      const savedCampaign = await saveCampaignData(campaignData);
+      console.log('💾 Campaign saved to database:', savedCampaign);
       
       // Process knowledge for RAG system
       try {

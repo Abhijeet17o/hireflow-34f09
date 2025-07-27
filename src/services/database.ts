@@ -4,11 +4,24 @@ import { neon } from '@neondatabase/serverless';
 const DATABASE_URL = import.meta.env.VITE_DATABASE_URL;
 
 let sql: any = null;
+let isInitialized = false;
 
 // Initialize database connection
 function initDatabase() {
-  if (!sql && DATABASE_URL) {
-    sql = neon(DATABASE_URL);
+  if (!isInitialized && DATABASE_URL && !DATABASE_URL.includes('${')) {
+    try {
+      console.log('🔧 Initializing Neon database connection...');
+      sql = neon(DATABASE_URL);
+      isInitialized = true;
+      console.log('✅ Database connection initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize database:', error);
+      sql = null;
+      isInitialized = false;
+    }
+  } else if (!DATABASE_URL || DATABASE_URL.includes('${')) {
+    console.warn('⚠️ Database URL not configured or contains template variables');
+    console.warn('DATABASE_URL:', DATABASE_URL ? 'Present but invalid' : 'Missing');
   }
   return sql;
 }

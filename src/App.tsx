@@ -9,8 +9,6 @@ import { CampaignCommunication } from './pages/CampaignCommunication';
 import { AccountSettings } from './pages/AccountSettings';
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
-import { DatabaseTest } from './components/DatabaseTest';
-import { EnvironmentDebug } from './components/EnvironmentDebug';
 import './index.css';
 
 function App() {
@@ -41,9 +39,6 @@ function App() {
           } />
         </Routes>
       </Router>
-      {/* Temporary debug components */}
-      <EnvironmentDebug />
-      <DatabaseTest />
     </AuthProvider>
   );
 }
