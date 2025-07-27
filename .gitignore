@@ -33,11 +33,13 @@ azure-functions/
 azure-functions-nodejs/
 azure-logic-apps/
 *.ps1
+!github-setup.ps1
 
-# Documentation (keep only main README)
+# Documentation (keep only main README and deployment guides)
 AZURE_*.md
 COMPLETE_*.md
 DEPLOYMENT_*.md
+!NETLIFY_DEPLOYMENT.md
 DOMAIN_*.md
 FORWARDEMAIL_*.md
 GOOGLE_OAUTH_*.md
