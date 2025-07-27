@@ -297,7 +297,9 @@ export async function saveCampaign(campaignData: Campaign): Promise<boolean> {
   }
 
   try {
-    await db`
+    console.log('🔄 Inserting campaign into database:', { id: campaignData.id, user_id: campaignData.user_id, title: campaignData.title });
+    
+    const result = await db`
       INSERT INTO campaigns (id, user_id, title, department, location, employment_type, experience_level, salary_range, job_description, requirements, openings)
       VALUES (${campaignData.id}, ${campaignData.user_id}, ${campaignData.title}, ${campaignData.department}, ${campaignData.location}, ${campaignData.employment_type}, ${campaignData.experience_level}, ${campaignData.salary_range || null}, ${campaignData.job_description}, ${campaignData.requirements}, ${campaignData.openings})
       ON CONFLICT (id)
@@ -312,11 +314,13 @@ export async function saveCampaign(campaignData: Campaign): Promise<boolean> {
         requirements = EXCLUDED.requirements,
         openings = EXCLUDED.openings,
         updated_at = CURRENT_TIMESTAMP
+      RETURNING id
     `;
     
+    console.log('✅ Campaign inserted successfully:', result?.[0]?.id || 'No ID returned');
     return true;
   } catch (error) {
-    console.error('Error saving campaign:', error);
+    console.error('❌ Error saving campaign:', error);
     return false;
   }
 }
@@ -327,13 +331,20 @@ export async function getUserCampaigns(userId: string): Promise<Campaign[]> {
   if (!db) return [];
 
   try {
+    console.log('🔍 Querying campaigns for user:', userId);
+    
     const result = await db`
       SELECT * FROM campaigns WHERE user_id = ${userId} ORDER BY created_at DESC
     `;
     
+    console.log('🔍 Query result:', result?.length || 0, 'campaigns found');
+    if (result && result.length > 0) {
+      console.log('🔍 Campaign titles:', result.map((c: any) => c.title));
+    }
+    
     return result || [];
   } catch (error) {
-    console.error('Error getting user campaigns:', error);
+    console.error('❌ Error getting user campaigns:', error);
     return [];
   }
 }

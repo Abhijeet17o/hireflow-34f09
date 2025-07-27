@@ -99,6 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verified_email: payload.email_verified,
         onboardingCompleted: true, // Skip onboarding completely
       };
+      
+      console.log('👤 Creating user with ID:', userData.id);
+      console.log('👤 User email:', userData.email);
 
       // Save user to database
       console.log('Saving user to database...');
@@ -147,9 +150,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Data management methods
   const saveCampaignData = async (campaignData: any): Promise<boolean> => {
-    if (!user) return false;
+    if (!user) {
+      console.error('❌ Cannot save campaign: User not authenticated');
+      return false;
+    }
 
     try {
+      console.log('💾 Attempting to save campaign for user:', user.id);
       const campaign: Campaign = {
         id: campaignData.id || `campaign_${Date.now()}`,
         user_id: user.id,
@@ -164,24 +171,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         openings: campaignData.openings || 1
       };
 
+      console.log('💾 Campaign data to save:', { id: campaign.id, user_id: campaign.user_id, title: campaign.title });
       const result = await saveCampaign(campaign);
-      console.log('Campaign saved:', result);
+      console.log('💾 Campaign save result:', result);
       return result;
     } catch (error) {
-      console.error('Error saving campaign:', error);
+      console.error('❌ Error saving campaign:', error);
       return false;
     }
   };
 
   const getUserCampaignsData = async (): Promise<Campaign[]> => {
-    if (!user) return [];
+    if (!user) {
+      console.error('❌ Cannot get campaigns: User not authenticated');
+      return [];
+    }
 
     try {
+      console.log('📊 Attempting to get campaigns for user:', user.id);
       const campaigns = await getUserCampaigns(user.id);
-      console.log('Retrieved user campaigns:', campaigns);
+      console.log('📊 Retrieved user campaigns:', campaigns.length, 'campaigns found');
+      console.log('📊 Campaign details:', campaigns.map(c => ({ id: c.id, title: c.title, user_id: c.user_id })));
       return campaigns;
     } catch (error) {
-      console.error('Error getting user campaigns:', error);
+      console.error('❌ Error getting user campaigns:', error);
       return [];
     }
   };
