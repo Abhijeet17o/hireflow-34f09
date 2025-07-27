@@ -9,6 +9,9 @@ import { CampaignCommunication } from './pages/CampaignCommunication';
 import { AccountSettings } from './pages/AccountSettings';
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
+import { PricingPage } from './pages/PricingPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import './index.css';
 
 function App() {
@@ -22,6 +25,10 @@ function App() {
           {/* Landing page - handles authentication flow */}
           <Route path="/landing" element={<LandingPage />} />
           
+          {/* Pricing and coming soon - accessible to all users */}
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/coming-soon" element={<ComingSoonPage />} />
+          
           {/* Protected routes - require authentication only */}
           <Route path="/*" element={
             <ProtectedRoute>
@@ -33,6 +40,7 @@ function App() {
                   <Route path="/campaign/:id" element={<CampaignDetail />} />
                   <Route path="/campaign/:id/communication" element={<CampaignCommunication />} />
                   <Route path="/settings" element={<AccountSettings />} />
+                  <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

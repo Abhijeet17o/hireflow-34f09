@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { PlusCircle, Users, Calendar, TrendingUp, MoreVertical, RefreshCw, Database } from 'lucide-react';
 import { type JobCampaign } from '../types';
 import { storageAPI, initializeMockData, resetStorageData, addDemoData } from '../utils/storage';
+import { UpgradeButton } from '../components/UpgradeButton';
+import { analytics, ANALYTICS_EVENTS } from '../utils/analytics';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Dashboard() {
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<JobCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,6 +21,16 @@ export function Dashboard() {
         await initializeMockData();
         const storedCampaigns = await storageAPI.getCampaigns();
         setCampaigns(storedCampaigns);
+        
+        // Track dashboard view
+        analytics.track(
+          ANALYTICS_EVENTS.DASHBOARD_VIEWED,
+          { 
+            campaignCount: storedCampaigns.length,
+            totalCandidates: storedCampaigns.reduce((total, campaign) => total + campaign.candidates.length, 0)
+          },
+          user ? { id: user.id, email: user.email } : undefined
+        );
       } catch (error) {
         console.error('Error loading campaigns:', error);
         setError('Failed to load campaigns');
@@ -26,7 +40,7 @@ export function Dashboard() {
     };
 
     loadCampaigns();
-  }, []);
+  }, [user]);
 
   // Debug function to reset data
   const handleResetData = async () => {
@@ -174,6 +188,7 @@ export function Dashboard() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
+            <UpgradeButton className="text-sm px-4 py-2" />
             <Link
               to="/create-campaign"
               className="btn-primary inline-flex items-center"
@@ -197,6 +212,11 @@ export function Dashboard() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Upgrade Banner */}
+      <div className="mb-8">
+        <UpgradeButton variant="banner" />
       </div>
 
       {/* Stats Overview */}
