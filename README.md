@@ -45,7 +45,7 @@ A modern React TypeScript application for managing recruitment campaigns and can
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/hireflow.git
+   git clone https://github.com/Abhijeet17o/hireflow.git
    cd hireflow
    ```
 
@@ -76,7 +76,7 @@ A modern React TypeScript application for managing recruitment campaigns and can
 
 ## 🌐 Deploy to Netlify
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/hireflow)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Abhijeet17o/hireflow)
 
 1. **Fork this repository** on GitHub
 2. **Click the Deploy button** above
@@ -101,6 +101,8 @@ A modern React TypeScript application for managing recruitment campaigns and can
 ---
 
 **Made with ❤️ for modern recruitment teams**
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Abhijeet17o/hireflow)
 ├── pages/               # Main application pages
 │   ├── Dashboard.tsx    # Campaign overview dashboard
 │   ├── CreateCampaign.tsx # New campaign creation

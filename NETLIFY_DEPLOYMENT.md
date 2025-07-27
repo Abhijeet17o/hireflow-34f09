@@ -57,7 +57,7 @@ This guide will help you deploy your HireFlow frontend to Netlify with Neon data
 
 2. **Push Your Code**
    ```bash
-   git remote add origin https://github.com/yourusername/hireflow.git
+   git remote add origin https://github.com/Abhijeet17o/hireflow.git
    git branch -M main
    git push -u origin main
    ```

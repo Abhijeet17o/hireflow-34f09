@@ -39,7 +39,7 @@ A modern React TypeScript application for managing recruitment campaigns and can
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/hireflow-frontend.git
+   git clone https://github.com/Abhijeet17o/hireflow-frontend.git
    cd hireflow-frontend
    ```
 
