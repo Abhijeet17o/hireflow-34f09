@@ -41,7 +41,7 @@ export function DatabaseDebugger() {
         const campaigns = await getUserCampaignsData();
         console.log('🧪 Retrieved campaigns:', campaigns);
         
-        setTestResult(`✅ Success! Saved campaign and retrieved ${campaigns.length} campaigns`);
+        setTestResult(`✅ Success! Saved campaign "${saveResult.title}" and retrieved ${campaigns.length} campaigns`);
       } else {
         setTestResult('❌ Failed to save campaign');
       }

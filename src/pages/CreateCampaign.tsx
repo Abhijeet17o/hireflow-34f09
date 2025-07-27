@@ -63,6 +63,13 @@ export function CreateCampaign() {
 
       // Save campaign to database
       const savedCampaign = await saveCampaignData(campaignData);
+      
+      if (!savedCampaign) {
+        console.error('❌ Failed to save campaign to database');
+        alert('Error creating campaign. Please try again.');
+        return;
+      }
+      
       console.log('💾 Campaign saved to database:', savedCampaign);
       
       // Process knowledge for RAG system

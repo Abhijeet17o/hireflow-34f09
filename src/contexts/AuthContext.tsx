@@ -30,7 +30,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   
   // Data management methods
-  saveCampaignData: (campaignData: any) => Promise<boolean>;
+  saveCampaignData: (campaignData: any) => Promise<Campaign | null>;
   getUserCampaignsData: () => Promise<Campaign[]>;
   saveCandidateData: (candidateData: any) => Promise<boolean>;
   getCampaignCandidatesData: (campaignId: string) => Promise<Candidate[]>;
@@ -149,10 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Data management methods
-  const saveCampaignData = async (campaignData: any): Promise<boolean> => {
+  const saveCampaignData = async (campaignData: any): Promise<Campaign | null> => {
     if (!user) {
       console.error('❌ Cannot save campaign: User not authenticated');
-      return false;
+      return null;
     }
 
     try {
@@ -174,10 +174,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('💾 Campaign data to save:', { id: campaign.id, user_id: campaign.user_id, title: campaign.title });
       const result = await saveCampaign(campaign);
       console.log('💾 Campaign save result:', result);
-      return result;
+      
+      if (result) {
+        console.log('✅ Campaign saved successfully, returning campaign object');
+        return campaign;
+      } else {
+        console.error('❌ Campaign save failed');
+        return null;
+      }
     } catch (error) {
       console.error('❌ Error saving campaign:', error);
-      return false;
+      return null;
     }
   };
 
