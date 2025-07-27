@@ -165,9 +165,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         location: campaignData.location,
         employment_type: campaignData.employmentType,
         experience_level: campaignData.experienceLevel,
-        salary_range: campaignData.salaryRange,
-        job_description: campaignData.jobDescription,
-        requirements: campaignData.requirements,
+        salary_range: campaignData.salaryRange || null,
+        job_description: campaignData.description, // Form uses 'description' field
+        requirements: campaignData.requirements || 'Requirements will be specified',
         openings: campaignData.openings || 1
       };
 

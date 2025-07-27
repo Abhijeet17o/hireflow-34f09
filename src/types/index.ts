@@ -48,6 +48,8 @@ export interface CreateCampaignForm {
   skills: string[];
   location: string;
   department: string;
+  employmentType: string;
+  experienceLevel: string;
   openings: number;
   jdFile?: File;
 }

@@ -184,6 +184,48 @@ export function CreateCampaign() {
             </div>
 
             <div>
+              <label htmlFor="employmentType" className="block text-sm font-medium text-gray-700 mb-2">
+                Employment Type *
+              </label>
+              <select
+                {...register('employmentType', { required: 'Employment type is required' })}
+                id="employmentType"
+                className="input-field"
+              >
+                <option value="">Select employment type</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Internship">Internship</option>
+                <option value="Freelance">Freelance</option>
+              </select>
+              {errors.employmentType && (
+                <p className="mt-1 text-sm text-red-600">{errors.employmentType.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                Experience Level *
+              </label>
+              <select
+                {...register('experienceLevel', { required: 'Experience level is required' })}
+                id="experienceLevel"
+                className="input-field"
+              >
+                <option value="">Select experience level</option>
+                <option value="Entry-level">Entry-level (0-2 years)</option>
+                <option value="Mid-level">Mid-level (2-5 years)</option>
+                <option value="Senior-level">Senior-level (5-10 years)</option>
+                <option value="Lead">Lead (8+ years)</option>
+                <option value="Executive">Executive (10+ years)</option>
+              </select>
+              {errors.experienceLevel && (
+                <p className="mt-1 text-sm text-red-600">{errors.experienceLevel.message}</p>
+              )}
+            </div>
+
+            <div>
               <label htmlFor="openings" className="block text-sm font-medium text-gray-700 mb-2">
                 Number of Openings *
               </label>
