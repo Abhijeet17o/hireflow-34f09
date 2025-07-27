@@ -52,8 +52,8 @@ export function OnboardingPage() {
       
       localStorage.setItem('accountSettings', JSON.stringify(onboardingData));
       
-      // Update auth context to mark onboarding as completed
-      completeOnboarding();
+      // Update auth context to mark onboarding as completed - pass the profile data
+      await completeOnboarding(data);
       
       // Redirect to landing page which will handle the final redirect
       window.location.href = '/landing';

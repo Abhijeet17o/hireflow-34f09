@@ -24,8 +24,52 @@ export interface User {
   updated_at?: string;
 }
 
-// Create users table if it doesn't exist
-export async function createUsersTable() {
+export interface UserProfile {
+  user_id: string;
+  full_name: string;
+  job_title: string;
+  company: string;
+  company_size: string;
+  industry: string;
+  phone?: string;
+  profile_completed: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Campaign {
+  id: string;
+  user_id: string;
+  title: string;
+  department: string;
+  location: string;
+  employment_type: string;
+  experience_level: string;
+  salary_range?: string;
+  job_description: string;
+  requirements: string;
+  openings: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Candidate {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  resume_url?: string;
+  stage: string;
+  notes?: string;
+  added_date: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Create all tables if they don't exist
+export async function createTables() {
   const db = initDatabase();
   if (!db) {
     console.warn('Database not initialized - using local storage fallback');
@@ -33,6 +77,7 @@ export async function createUsersTable() {
   }
 
   try {
+    // Users table
     await db`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(255) PRIMARY KEY,
@@ -45,9 +90,63 @@ export async function createUsersTable() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    console.log('Users table created/verified');
+
+    // User profiles table (onboarding data)
+    await db`
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id),
+        full_name VARCHAR(255) NOT NULL,
+        job_title VARCHAR(255) NOT NULL,
+        company VARCHAR(255) NOT NULL,
+        company_size VARCHAR(100) NOT NULL,
+        industry VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        profile_completed BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    // Campaigns table
+    await db`
+      CREATE TABLE IF NOT EXISTS campaigns (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        title VARCHAR(255) NOT NULL,
+        department VARCHAR(255) NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        employment_type VARCHAR(100) NOT NULL,
+        experience_level VARCHAR(100) NOT NULL,
+        salary_range VARCHAR(255),
+        job_description TEXT NOT NULL,
+        requirements TEXT NOT NULL,
+        openings INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    // Candidates table
+    await db`
+      CREATE TABLE IF NOT EXISTS candidates (
+        id VARCHAR(255) PRIMARY KEY,
+        campaign_id VARCHAR(255) NOT NULL REFERENCES campaigns(id),
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        resume_url TEXT,
+        stage VARCHAR(100) DEFAULT 'applied',
+        notes TEXT,
+        added_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log('All database tables created/verified');
   } catch (error) {
-    console.error('Error creating users table:', error);
+    console.error('Error creating database tables:', error);
   }
 }
 
@@ -121,7 +220,151 @@ export async function updateUserOnboarding(email: string, completed: boolean): P
   }
 }
 
+// Save user profile (onboarding data)
+export async function saveUserProfile(profileData: UserProfile): Promise<boolean> {
+  const db = initDatabase();
+  if (!db) {
+    console.warn('Database not available - using local storage');
+    return true;
+  }
+
+  try {
+    await db`
+      INSERT INTO user_profiles (user_id, full_name, job_title, company, company_size, industry, phone, profile_completed)
+      VALUES (${profileData.user_id}, ${profileData.full_name}, ${profileData.job_title}, ${profileData.company}, ${profileData.company_size}, ${profileData.industry}, ${profileData.phone || null}, ${profileData.profile_completed})
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        job_title = EXCLUDED.job_title,
+        company = EXCLUDED.company,
+        company_size = EXCLUDED.company_size,
+        industry = EXCLUDED.industry,
+        phone = EXCLUDED.phone,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving user profile:', error);
+    return false;
+  }
+}
+
+// Get user profile
+export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  const db = initDatabase();
+  if (!db) return null;
+
+  try {
+    const result = await db`
+      SELECT * FROM user_profiles WHERE user_id = ${userId}
+    `;
+    
+    return result[0] || null;
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+}
+
+// Save campaign
+export async function saveCampaign(campaignData: Campaign): Promise<boolean> {
+  const db = initDatabase();
+  if (!db) {
+    console.warn('Database not available - using local storage');
+    return true;
+  }
+
+  try {
+    await db`
+      INSERT INTO campaigns (id, user_id, title, department, location, employment_type, experience_level, salary_range, job_description, requirements, openings)
+      VALUES (${campaignData.id}, ${campaignData.user_id}, ${campaignData.title}, ${campaignData.department}, ${campaignData.location}, ${campaignData.employment_type}, ${campaignData.experience_level}, ${campaignData.salary_range || null}, ${campaignData.job_description}, ${campaignData.requirements}, ${campaignData.openings})
+      ON CONFLICT (id)
+      DO UPDATE SET
+        title = EXCLUDED.title,
+        department = EXCLUDED.department,
+        location = EXCLUDED.location,
+        employment_type = EXCLUDED.employment_type,
+        experience_level = EXCLUDED.experience_level,
+        salary_range = EXCLUDED.salary_range,
+        job_description = EXCLUDED.job_description,
+        requirements = EXCLUDED.requirements,
+        openings = EXCLUDED.openings,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving campaign:', error);
+    return false;
+  }
+}
+
+// Get user campaigns
+export async function getUserCampaigns(userId: string): Promise<Campaign[]> {
+  const db = initDatabase();
+  if (!db) return [];
+
+  try {
+    const result = await db`
+      SELECT * FROM campaigns WHERE user_id = ${userId} ORDER BY created_at DESC
+    `;
+    
+    return result || [];
+  } catch (error) {
+    console.error('Error getting user campaigns:', error);
+    return [];
+  }
+}
+
+// Save candidate
+export async function saveCandidate(candidateData: Candidate): Promise<boolean> {
+  const db = initDatabase();
+  if (!db) {
+    console.warn('Database not available - using local storage');
+    return true;
+  }
+
+  try {
+    await db`
+      INSERT INTO candidates (id, campaign_id, user_id, name, email, phone, resume_url, stage, notes, added_date)
+      VALUES (${candidateData.id}, ${candidateData.campaign_id}, ${candidateData.user_id}, ${candidateData.name}, ${candidateData.email}, ${candidateData.phone || null}, ${candidateData.resume_url || null}, ${candidateData.stage}, ${candidateData.notes || null}, ${candidateData.added_date})
+      ON CONFLICT (id)
+      DO UPDATE SET
+        name = EXCLUDED.name,
+        email = EXCLUDED.email,
+        phone = EXCLUDED.phone,
+        resume_url = EXCLUDED.resume_url,
+        stage = EXCLUDED.stage,
+        notes = EXCLUDED.notes,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving candidate:', error);
+    return false;
+  }
+}
+
+// Get campaign candidates
+export async function getCampaignCandidates(campaignId: string): Promise<Candidate[]> {
+  const db = initDatabase();
+  if (!db) return [];
+
+  try {
+    const result = await db`
+      SELECT * FROM candidates WHERE campaign_id = ${campaignId} ORDER BY created_at DESC
+    `;
+    
+    return result || [];
+  } catch (error) {
+    console.error('Error getting campaign candidates:', error);
+    return [];
+  }
+}
+
 // Initialize database on app start
 export async function initializeDatabase() {
-  await createUsersTable();
+  await createTables();
 }
