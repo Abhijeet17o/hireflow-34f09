@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { saveUser, getUser, updateUserOnboarding, initializeDatabase } from '../services/database';
+import { saveUser, updateUserOnboarding, initializeDatabase } from '../services/database';
 
 interface User {
   id: string;
@@ -32,13 +32,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Check if user is already logged in
     const savedUser = localStorage.getItem('hireflow_user');
-    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
     
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
-        userData.onboardingCompleted = onboardingCompleted === 'true';
+        userData.onboardingCompleted = true; // Always set to true for existing users
         setUser(userData);
+        localStorage.setItem('onboardingCompleted', 'true'); // Ensure it's marked as completed
       } catch (error) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('hireflow_user');
@@ -54,8 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Decode the JWT token to get user info
       const payload = JSON.parse(atob(credential.split('.')[1]));
       
-      // Check if user exists in database
-      let dbUser = await getUser(payload.email);
+      // No need to check existing user - always proceed with login
       
       const userData: User = {
         id: payload.sub,
@@ -63,26 +62,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: payload.name,
         picture: payload.picture,
         verified_email: payload.email_verified,
-        onboardingCompleted: dbUser?.onboarding_completed || false,
+        onboardingCompleted: true, // Always set to true to skip onboarding
       };
 
-      // Save user to database
-      const savedUser = await saveUser({
+      // Save user to database with onboarding completed
+      await saveUser({
         id: userData.id,
         email: userData.email,
         name: userData.name,
         picture: userData.picture,
         verified_email: userData.verified_email,
-        onboarding_completed: userData.onboardingCompleted,
+        onboarding_completed: true, // Always save as completed
       });
 
-      if (savedUser) {
-        userData.onboardingCompleted = savedUser.onboarding_completed || false;
-      }
+      // Always set onboarding as completed
+      userData.onboardingCompleted = true;
 
       setUser(userData);
       localStorage.setItem('hireflow_user', JSON.stringify(userData));
       localStorage.setItem('hireflow_token', credential);
+      localStorage.setItem('onboardingCompleted', 'true'); // Always mark as completed
       
     } catch (error) {
       console.error('Login error:', error);
@@ -138,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     isAuthenticated: !!user,
-    needsOnboarding: !!user && !user.onboardingCompleted,
+    needsOnboarding: false, // Always false - no onboarding needed
     completeOnboarding,
   };
 

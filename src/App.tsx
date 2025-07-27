@@ -8,7 +8,6 @@ import { CampaignDetail } from './pages/CampaignDetail';
 import { CampaignCommunication } from './pages/CampaignCommunication';
 import { AccountSettings } from './pages/AccountSettings';
 import { LoginPage } from './pages/LoginPage';
-import { OnboardingPage } from './pages/OnboardingPage';
 import { LandingPage } from './pages/LandingPage';
 import './index.css';
 
@@ -23,19 +22,12 @@ function App() {
           {/* Landing page - handles authentication flow */}
           <Route path="/landing" element={<LandingPage />} />
           
-          {/* Onboarding route - authenticated but no onboarding completion check */}
-          <Route path="/onboarding" element={
-            <ProtectedRoute requireOnboarding={false}>
-              <OnboardingPage />
-            </ProtectedRoute>
-          } />
-          
-          {/* Protected routes - require authentication and onboarding completion */}
+          {/* Protected routes - require authentication only */}
           <Route path="/*" element={
             <ProtectedRoute>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/" element={<Dashboard />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/create-campaign" element={<CreateCampaign />} />
                   <Route path="/campaign/:id" element={<CampaignDetail />} />

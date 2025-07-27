@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export function LandingPage() {
-  const { isAuthenticated, needsOnboarding, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,10 +17,6 @@ export function LandingPage() {
     return <Navigate to="/login" replace />;
   }
 
-  if (needsOnboarding) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // User is authenticated and onboarded - redirect to dashboard
+  // User is authenticated - redirect directly to dashboard
   return <Navigate to="/dashboard" replace />;
 }
