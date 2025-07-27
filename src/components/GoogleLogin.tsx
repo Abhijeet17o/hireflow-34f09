@@ -23,9 +23,16 @@ export function GoogleLogin({ onSuccess, onError }: GoogleLoginProps) {
 
   const initializeGoogleSignIn = () => {
     if (window.google && googleButtonRef.current) {
-      // Get client ID from environment or use fallback for development
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 
-                      '896831455329-tuo2uqr5eg3c8jckkqhrlvno8dgjcg1d.apps.googleusercontent.com';
+      // Get client ID from environment
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      
+      if (!clientId) {
+        console.error('VITE_GOOGLE_CLIENT_ID is not set');
+        onError();
+        return;
+      }
+      
+      console.log('Initializing Google Sign-In with Client ID:', clientId);
       
       window.google.accounts.id.initialize({
         client_id: clientId,

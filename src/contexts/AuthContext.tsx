@@ -51,11 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
+      console.log('Starting login process...');
+      
       // Decode the JWT token to get user info
       const payload = JSON.parse(atob(credential.split('.')[1]));
+      console.log('Decoded JWT payload:', { email: payload.email, name: payload.name });
       
       // Check if user exists in database
+      console.log('Checking if user exists in database...');
       let dbUser = await getUser(payload.email);
+      console.log('Database user:', dbUser ? 'Found' : 'Not found');
       
       const userData: User = {
         id: payload.sub,
@@ -67,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       // Save user to database
+      console.log('Saving user to database...');
       const savedUser = await saveUser({
         id: userData.id,
         email: userData.email,
@@ -80,12 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userData.onboardingCompleted = savedUser.onboarding_completed || false;
       }
 
+      console.log('Login successful, setting user state');
       setUser(userData);
       localStorage.setItem('hireflow_user', JSON.stringify(userData));
       localStorage.setItem('hireflow_token', credential);
       
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error details:', error);
       throw error;
     } finally {
       setIsLoading(false);

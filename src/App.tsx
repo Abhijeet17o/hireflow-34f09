@@ -11,6 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { LandingPage } from './pages/LandingPage';
 import { DatabaseTest } from './components/DatabaseTest';
+import { EnvironmentDebug } from './components/EnvironmentDebug';
 import './index.css';
 
 function App() {
@@ -48,7 +49,8 @@ function App() {
           } />
         </Routes>
       </Router>
-      {/* Temporary database test component */}
+      {/* Temporary debug components */}
+      <EnvironmentDebug />
       <DatabaseTest />
     </AuthProvider>
   );
