@@ -1,4 +1,18 @@
-# 🚀 HireFlow - Modern Recruitment Dashboard
+# 🚀 HireF## ✨ Features
+
+- **🖥️ Modern Dashboard**: Clean, responsive interface built with React & TypeScript
+- **🔐 Google OAuth**: Secure authentication with Google Sign-In
+- **📊 Campaign Management**: Create and manage job campaigns with detailed tracking
+- **👥 Kanban Board**: Drag-and-drop candidate pipeline management
+- **💬 Communication Hub**: WhatsApp-style messaging interface
+- **🎯 Candidate Tracking**: Comprehensive candidate management system
+- **📄 Bulk Import**: CSV upload for bulk candidate import
+- **🌙 Dark Mode**: Beautiful dark/light theme switching
+- **🗄️ Database Integration**: Serverless PostgreSQL with Neon
+- **☁️ Data Persistence**: All user data, campaigns, and candidates stored securely in the cloud
+- **🔄 Real-time Sync**: Changes automatically saved and synchronized across sessions
+- **📱 Offline Support**: Local storage fallback when database is unavailable
+- **🚀 Fast Deployment**: One-click deployment to Netlify Recruitment Dashboard
 
 A modern React TypeScript application for managing recruitment campaigns and candidate tracking with AI-powered automation.
 
