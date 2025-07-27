@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Users, Calendar, TrendingUp, MoreVertical, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { DatabaseDebugger } from '../components/DatabaseDebugger';
 import type { Campaign } from '../services/database';
 
 export function Dashboard() {
@@ -86,6 +87,9 @@ export function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Debug Component - Remove in production */}
+      <DatabaseDebugger />
+      
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
