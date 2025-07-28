@@ -1,10 +1,8 @@
-interface AnalyticsEvent {
-  eventType: string;
-  eventData: Record<string, any>;
-  userInfo?: { id: string; email: string };
+interface UserFeedback {
+  userName?: string;
+  userEmail?: string;
+  responses: Record<string, any>;
   timestamp: string;
-  currency?: string;
-  sessionId?: string;
 }
 
 export default async (req: Request) => {
@@ -17,10 +15,10 @@ export default async (req: Request) => {
   }
 
   try {
-    const event: AnalyticsEvent = await req.json();
+    const feedback: UserFeedback = await req.json();
     
     // Validate required fields
-    if (!event.eventType || !event.timestamp) {
+    if (!feedback.responses || !feedback.timestamp) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -33,54 +31,46 @@ export default async (req: Request) => {
       const sql = neon(process.env.NEON_DATABASE_URL);
       
       await sql`
-        INSERT INTO analytics_events (
-          event_type, 
-          event_data, 
-          user_id, 
+        INSERT INTO user_feedback (
+          user_name, 
           user_email, 
+          responses, 
           timestamp, 
           ip_address, 
-          user_agent,
-          currency,
-          session_id
+          user_agent
         ) VALUES (
-          ${event.eventType},
-          ${JSON.stringify(event.eventData)},
-          ${event.userInfo?.id || null},
-          ${event.userInfo?.email || null},
-          ${event.timestamp},
+          ${feedback.userName || null},
+          ${feedback.userEmail || null},
+          ${JSON.stringify(feedback.responses)},
+          ${feedback.timestamp},
           ${req.headers.get('x-forwarded-for') || null},
-          ${req.headers.get('user-agent') || null},
-          ${event.currency || null},
-          ${event.sessionId || null}
+          ${req.headers.get('user-agent') || null}
         )
       `;
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Analytics event saved to database',
-        eventId: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        message: 'Feedback saved to database',
+        feedbackId: `fb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
-      // Fallback for development - just log the event
-      console.log('Analytics Event (Dev Mode):', {
-        eventType: event.eventType,
-        eventData: event.eventData,
-        userInfo: event.userInfo,
-        timestamp: event.timestamp,
+      // Fallback for development - just log the feedback
+      console.log('User Feedback (Dev Mode):', {
+        userName: feedback.userName,
+        userEmail: feedback.userEmail,
+        responses: feedback.responses,
+        timestamp: feedback.timestamp,
         ip: req.headers.get('x-forwarded-for') || 'unknown',
         userAgent: req.headers.get('user-agent') || 'unknown',
-        currency: event.currency,
-        sessionId: event.sessionId,
       });
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Analytics event logged (dev mode)',
-        eventId: `dev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        message: 'Feedback logged (dev mode)',
+        feedbackId: `dev_fb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -88,10 +78,10 @@ export default async (req: Request) => {
     }
 
   } catch (error) {
-    console.error('Analytics error:', error);
+    console.error('Feedback error:', error);
     
     return new Response(JSON.stringify({ 
-      error: 'Failed to save analytics event',
+      error: 'Failed to save feedback',
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,

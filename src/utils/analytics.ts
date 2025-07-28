@@ -35,12 +35,25 @@ class AnalyticsTracker {
   // Save to Neon database via Netlify function
   private async saveToDatabase(event: AnalyticsEvent): Promise<void> {
     try {
+      const payload = {
+        eventType: event.event,
+        eventData: event.metadata || {},
+        userInfo: event.userId ? {
+          id: event.userId,
+          email: event.userEmail || '',
+          name: event.userName
+        } : undefined,
+        timestamp: event.timestamp,
+        currency: this.getCurrentCurrency(),
+        sessionId: this.getSessionId()
+      };
+
       const response = await fetch('/.netlify/functions/save-analytics', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(event),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -52,6 +65,27 @@ class AnalyticsTracker {
       console.error('❌ Failed to save analytics to database:', error);
       // Fallback to localStorage if database fails
       this.saveToLocalStorage(event);
+    }
+  }
+
+  private getCurrentCurrency(): string {
+    try {
+      return localStorage.getItem('selectedCurrency') || 'USD';
+    } catch {
+      return 'USD';
+    }
+  }
+
+  private getSessionId(): string {
+    try {
+      let sessionId = sessionStorage.getItem('hireflow_session_id');
+      if (!sessionId) {
+        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        sessionStorage.setItem('hireflow_session_id', sessionId);
+      }
+      return sessionId;
+    } catch {
+      return `fallback_${Date.now()}`;
     }
   }
 

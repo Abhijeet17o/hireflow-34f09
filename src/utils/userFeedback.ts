@@ -47,8 +47,40 @@ class UserFeedbackManager {
     feedback.push(newFeedback);
     this.saveFeedback(feedback);
 
+    // Save to database
+    this.saveToDatabase(newFeedback);
+
     console.log('📝 Feedback submitted:', newFeedback);
     return newFeedback;
+  }
+
+  // Save to Neon database via Netlify function
+  private async saveToDatabase(feedback: UserFeedback): Promise<void> {
+    try {
+      const payload = {
+        userName: feedback.userName,
+        userEmail: feedback.userEmail,
+        responses: feedback.responses,
+        timestamp: feedback.timestamp
+      };
+
+      const response = await fetch('/.netlify/functions/save-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log('✅ Feedback saved to database:', feedback.id);
+    } catch (error) {
+      console.error('❌ Failed to save feedback to database:', error);
+      // Don't throw - local storage already worked
+    }
   }
 
   getAllFeedback(): UserFeedback[] {
