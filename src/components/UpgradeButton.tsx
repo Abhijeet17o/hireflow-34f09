@@ -75,7 +75,10 @@ export function UpgradeButton({ variant = 'button', className = '' }: UpgradeBut
     <Link
       to="/pricing"
       onClick={handleUpgradeClick}
-      className={`btn-primary inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 ${className}`}
+      className={className.includes('bg-gray') 
+        ? `inline-flex items-center space-x-2 ${className}`
+        : `btn-primary inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 ${className}`
+      }
     >
       <Crown className="h-4 w-4" />
       <span>Upgrade to Pro</span>

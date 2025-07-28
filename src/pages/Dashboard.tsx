@@ -188,7 +188,7 @@ export function Dashboard() {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
-            <UpgradeButton className="text-sm px-4 py-2" />
+            <UpgradeButton className="text-sm px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300" />
             <Link
               to="/create-campaign"
               className="btn-primary inline-flex items-center"
@@ -212,11 +212,6 @@ export function Dashboard() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Upgrade Banner */}
-      <div className="mb-8">
-        <UpgradeButton variant="banner" />
       </div>
 
       {/* Stats Overview */}
