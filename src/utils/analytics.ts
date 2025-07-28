@@ -48,6 +48,8 @@ class AnalyticsTracker {
         sessionId: this.getSessionId()
       };
 
+      console.log('📊 Analytics Event:', payload);
+
       const response = await fetch('/.netlify/functions/save-analytics', {
         method: 'POST',
         headers: {
@@ -56,11 +58,17 @@ class AnalyticsTracker {
         body: JSON.stringify(payload),
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Server error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
-      console.log('✅ Analytics saved to database:', event.event);
+      const result = await response.json();
+      console.log('✅ Analytics saved to database:', result);
     } catch (error) {
       console.error('❌ Failed to save analytics to database:', error);
       // Fallback to localStorage if database fails
