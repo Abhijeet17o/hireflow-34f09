@@ -11,7 +11,7 @@ import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+// Removed AnalyticsDashboard - admin analytics completely removed
 import './index.css';
 
 function App() {
@@ -40,7 +40,7 @@ function App() {
                   <Route path="/campaign/:id" element={<CampaignDetail />} />
                   <Route path="/campaign/:id/communication" element={<CampaignCommunication />} />
                   <Route path="/settings" element={<AccountSettings />} />
-                  <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
+                  {/* Admin analytics route removed completely */}
                 </Routes>
               </Layout>
             </ProtectedRoute>

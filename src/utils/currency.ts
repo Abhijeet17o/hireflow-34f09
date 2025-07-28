@@ -13,13 +13,13 @@ export const SUPPORTED_CURRENCIES: Currency[] = [
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', exchangeRate: 1.36 },
   { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', exchangeRate: 1.52 },
   { code: 'JPY', symbol: '¥', name: 'Japanese Yen', exchangeRate: 149 },
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee', exchangeRate: 83 },
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee', exchangeRate: 75 }, // Updated for ₹150
   { code: 'BRL', symbol: 'R$', name: 'Brazilian Real', exchangeRate: 5.1 },
   { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso', exchangeRate: 17.2 },
   { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', exchangeRate: 1.34 },
 ];
 
-const BASE_USD_PRICE = 3; // $3 USD base price
+const BASE_USD_PRICE = 2; // $2 USD base price (reduced from $3)
 
 export class CurrencyConverter {
   private selectedCurrency: Currency;
@@ -98,7 +98,7 @@ export class CurrencyConverter {
     return {
       price: this.formatPrice(),
       savings: code === 'JPY' ? `${symbol}${Math.round(savings).toLocaleString()}` : `${symbol}${savings.toFixed(2)}`,
-      originalUSD: '$3.00 USD'
+      originalUSD: '$2.00 USD'
     };
   }
 
