@@ -87,6 +87,21 @@ export default async (req: Request) => {
       // Insert feedback
       try {
         console.log('💾 Inserting feedback...');
+        
+        // Extract the first IP address from x-forwarded-for header
+        const forwardedFor = req.headers.get('x-forwarded-for');
+        const connectingIp = req.headers.get('cf-connecting-ip');
+        let clientIp: string | null = null;
+        
+        if (forwardedFor) {
+          // Extract first IP from comma-separated list
+          clientIp = forwardedFor.split(',')[0].trim();
+        } else if (connectingIp) {
+          clientIp = connectingIp.trim();
+        }
+        
+        console.log('🌐 Client IP extracted:', clientIp);
+        
         const result = await sql`
           INSERT INTO user_feedback (
             user_name, 
@@ -100,7 +115,7 @@ export default async (req: Request) => {
             ${feedback.userEmail || null},
             ${JSON.stringify(feedback.responses)},
             ${feedback.timestamp},
-            ${req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || null},
+            ${clientIp},
             ${req.headers.get('user-agent') || null}
           ) RETURNING id, timestamp
         `;

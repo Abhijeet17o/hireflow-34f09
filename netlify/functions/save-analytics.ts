@@ -89,6 +89,21 @@ export default async (req: Request) => {
       // Insert analytics event
       try {
         console.log('💾 Inserting analytics event...');
+        
+        // Extract the first IP address from x-forwarded-for header
+        const forwardedFor = req.headers.get('x-forwarded-for');
+        const connectingIp = req.headers.get('cf-connecting-ip');
+        let clientIp: string | null = null;
+        
+        if (forwardedFor) {
+          // Extract first IP from comma-separated list
+          clientIp = forwardedFor.split(',')[0].trim();
+        } else if (connectingIp) {
+          clientIp = connectingIp.trim();
+        }
+        
+        console.log('🌐 Client IP extracted:', clientIp);
+        
         const result = await sql`
           INSERT INTO analytics_events (
             event_type, 
@@ -106,7 +121,7 @@ export default async (req: Request) => {
             ${event.userInfo?.id || null},
             ${event.userInfo?.email || null},
             ${event.timestamp},
-            ${req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || null},
+            ${clientIp},
             ${req.headers.get('user-agent') || null},
             ${event.currency || null},
             ${event.sessionId || null}
