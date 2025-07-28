@@ -31,20 +31,11 @@ export default async (req: Request) => {
   }
 
   try {
-    console.log('🚀 Starting analytics save function...');
-    
     // Parse request body
     let event: AnalyticsEvent;
     try {
       event = await req.json();
-      console.log('📊 Parsed analytics event:', {
-        eventType: event.eventType,
-        hasEventData: !!event.eventData,
-        timestamp: event.timestamp,
-        currency: event.currency
-      });
     } catch (parseError) {
-      console.error('❌ Failed to parse request body:', parseError);
       return new Response(JSON.stringify({ 
         error: 'Invalid JSON in request body',
         details: parseError instanceof Error ? parseError.message : 'Unknown parse error'
@@ -56,27 +47,20 @@ export default async (req: Request) => {
     
     // Validate required fields
     if (!event.eventType || !event.timestamp) {
-      console.error('❌ Missing required fields:', { eventType: event.eventType, timestamp: event.timestamp });
       return new Response(JSON.stringify({ error: 'Missing required fields: eventType and timestamp' }), {
         status: 400,
         headers,
       });
     }
 
-    console.log('🌍 Environment check - NEON_DATABASE_URL exists:', !!process.env.NEON_DATABASE_URL);
-
     // For production, use Neon database
     if (process.env.NEON_DATABASE_URL) {
-      console.log('🔌 Connecting to Neon database...');
-      
       const sql = neon(process.env.NEON_DATABASE_URL);
       
       // Test database connection first
       try {
-        const connectionTest = await sql`SELECT 1 as test, NOW() as current_time`;
-        console.log('✅ Database connection successful:', connectionTest[0]);
+        await sql`SELECT 1 as test`;
       } catch (dbError) {
-        console.error('❌ Database connection failed:', dbError);
         return new Response(JSON.stringify({ 
           error: 'Database connection failed',
           details: dbError instanceof Error ? dbError.message : 'Unknown database error'
@@ -88,8 +72,6 @@ export default async (req: Request) => {
       
       // Insert analytics event
       try {
-        console.log('💾 Inserting analytics event...');
-        
         // Extract the first IP address from x-forwarded-for header
         const forwardedFor = req.headers.get('x-forwarded-for');
         const connectingIp = req.headers.get('cf-connecting-ip');
@@ -101,8 +83,6 @@ export default async (req: Request) => {
         } else if (connectingIp) {
           clientIp = connectingIp.trim();
         }
-        
-        console.log('🌐 Client IP extracted:', clientIp);
         
         const result = await sql`
           INSERT INTO analytics_events (
@@ -128,8 +108,6 @@ export default async (req: Request) => {
           ) RETURNING id, timestamp
         `;
 
-        console.log('✅ Analytics saved to database:', result[0]);
-
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'Analytics event saved to database',
@@ -141,7 +119,6 @@ export default async (req: Request) => {
           headers,
         });
       } catch (insertError) {
-        console.error('❌ Failed to insert analytics event:', insertError);
         return new Response(JSON.stringify({ 
           error: 'Failed to insert analytics event',
           details: insertError instanceof Error ? insertError.message : 'Unknown insert error'
@@ -151,20 +128,7 @@ export default async (req: Request) => {
         });
       }
     } else {
-      console.log('⚠️  No NEON_DATABASE_URL found - running in dev mode');
-      
       // Fallback for development - just log the event
-      console.log('Analytics Event (Dev Mode):', {
-        eventType: event.eventType,
-        eventData: event.eventData,
-        userInfo: event.userInfo,
-        timestamp: event.timestamp,
-        ip: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown',
-        userAgent: req.headers.get('user-agent') || 'unknown',
-        currency: event.currency,
-        sessionId: event.sessionId,
-      });
-
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Analytics event logged (dev mode)',
@@ -177,9 +141,6 @@ export default async (req: Request) => {
     }
 
   } catch (error) {
-    console.error('❌ Unexpected analytics error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
     return new Response(JSON.stringify({ 
       error: 'Failed to save analytics event',
       details: error instanceof Error ? error.message : 'Unknown error',

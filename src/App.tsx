@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
@@ -11,10 +12,15 @@ import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
 import { PricingPage } from './pages/PricingPage';
 import { ComingSoonPage } from './pages/ComingSoonPage';
-// Removed AnalyticsDashboard - admin analytics completely removed
+import { analytics } from './utils/analytics';
 import './index.css';
 
 function App() {
+  useEffect(() => {
+    // Initialize first visit tracking
+    analytics.initializeTracking();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
@@ -40,7 +46,6 @@ function App() {
                   <Route path="/campaign/:id" element={<CampaignDetail />} />
                   <Route path="/campaign/:id/communication" element={<CampaignCommunication />} />
                   <Route path="/settings" element={<AccountSettings />} />
-                  {/* Admin analytics route removed completely */}
                 </Routes>
               </Layout>
             </ProtectedRoute>

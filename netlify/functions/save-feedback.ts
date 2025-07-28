@@ -29,20 +29,11 @@ export default async (req: Request) => {
   }
 
   try {
-    console.log('🚀 Starting feedback save function...');
-    
     // Parse request body
     let feedback: UserFeedback;
     try {
       feedback = await req.json();
-      console.log('📝 Parsed feedback:', {
-        hasUserName: !!feedback.userName,
-        hasUserEmail: !!feedback.userEmail,
-        hasResponses: !!feedback.responses,
-        timestamp: feedback.timestamp
-      });
     } catch (parseError) {
-      console.error('❌ Failed to parse request body:', parseError);
       return new Response(JSON.stringify({ 
         error: 'Invalid JSON in request body',
         details: parseError instanceof Error ? parseError.message : 'Unknown parse error'
@@ -54,27 +45,20 @@ export default async (req: Request) => {
     
     // Validate required fields
     if (!feedback.responses || !feedback.timestamp) {
-      console.error('❌ Missing required fields:', { responses: !!feedback.responses, timestamp: feedback.timestamp });
       return new Response(JSON.stringify({ error: 'Missing required fields: responses and timestamp' }), {
         status: 400,
         headers,
       });
     }
 
-    console.log('🌍 Environment check - NEON_DATABASE_URL exists:', !!process.env.NEON_DATABASE_URL);
-
     // For production, use Neon database
     if (process.env.NEON_DATABASE_URL) {
-      console.log('🔌 Connecting to Neon database...');
-      
       const sql = neon(process.env.NEON_DATABASE_URL);
       
       // Test database connection first
       try {
-        const connectionTest = await sql`SELECT 1 as test, NOW() as current_time`;
-        console.log('✅ Database connection successful:', connectionTest[0]);
+        await sql`SELECT 1 as test`;
       } catch (dbError) {
-        console.error('❌ Database connection failed:', dbError);
         return new Response(JSON.stringify({ 
           error: 'Database connection failed',
           details: dbError instanceof Error ? dbError.message : 'Unknown database error'
@@ -86,8 +70,6 @@ export default async (req: Request) => {
       
       // Insert feedback
       try {
-        console.log('💾 Inserting feedback...');
-        
         // Extract the first IP address from x-forwarded-for header
         const forwardedFor = req.headers.get('x-forwarded-for');
         const connectingIp = req.headers.get('cf-connecting-ip');
@@ -99,8 +81,6 @@ export default async (req: Request) => {
         } else if (connectingIp) {
           clientIp = connectingIp.trim();
         }
-        
-        console.log('🌐 Client IP extracted:', clientIp);
         
         const result = await sql`
           INSERT INTO user_feedback (
@@ -120,8 +100,6 @@ export default async (req: Request) => {
           ) RETURNING id, timestamp
         `;
 
-        console.log('✅ Feedback saved to database:', result[0]);
-
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'Feedback saved to database',
@@ -133,7 +111,6 @@ export default async (req: Request) => {
           headers,
         });
       } catch (insertError) {
-        console.error('❌ Failed to insert feedback:', insertError);
         return new Response(JSON.stringify({ 
           error: 'Failed to insert feedback',
           details: insertError instanceof Error ? insertError.message : 'Unknown insert error'
@@ -143,18 +120,7 @@ export default async (req: Request) => {
         });
       }
     } else {
-      console.log('⚠️  No NEON_DATABASE_URL found - running in dev mode');
-      
       // Fallback for development - just log the feedback
-      console.log('User Feedback (Dev Mode):', {
-        userName: feedback.userName,
-        userEmail: feedback.userEmail,
-        responses: feedback.responses,
-        timestamp: feedback.timestamp,
-        ip: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown',
-        userAgent: req.headers.get('user-agent') || 'unknown',
-      });
-
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Feedback logged (dev mode)',
@@ -167,9 +133,6 @@ export default async (req: Request) => {
     }
 
   } catch (error) {
-    console.error('❌ Unexpected feedback error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
     return new Response(JSON.stringify({ 
       error: 'Failed to save feedback',
       details: error instanceof Error ? error.message : 'Unknown error',

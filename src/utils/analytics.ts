@@ -48,8 +48,6 @@ class AnalyticsTracker {
         sessionId: this.getSessionId()
       };
 
-      console.log('📊 Analytics Event:', payload);
-
       const response = await fetch('/.netlify/functions/save-analytics', {
         method: 'POST',
         headers: {
@@ -58,19 +56,10 @@ class AnalyticsTracker {
         body: JSON.stringify(payload),
       });
 
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Server error response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const result = await response.json();
-      console.log('✅ Analytics saved to database:', result);
     } catch (error) {
-      console.error('❌ Failed to save analytics to database:', error);
       // Fallback to localStorage if database fails
       this.saveToLocalStorage(event);
     }
@@ -95,6 +84,30 @@ class AnalyticsTracker {
     } catch {
       return `fallback_${Date.now()}`;
     }
+  }
+
+  private checkAndTrackFirstVisit(): void {
+    try {
+      const hasVisited = localStorage.getItem('hireflow_has_visited');
+      if (!hasVisited) {
+        localStorage.setItem('hireflow_has_visited', 'true');
+        localStorage.setItem('hireflow_first_visit_date', new Date().toISOString());
+        
+        // Track first visit event
+        this.track('website_first_visit', {
+          source: 'direct_visit',
+          isFirstTime: true,
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      // Silently fail if localStorage is not available
+    }
+  }
+
+  // Call this method when the app initializes
+  initializeTracking(): void {
+    this.checkAndTrackFirstVisit();
   }
 
   async track(
@@ -125,9 +138,7 @@ class AnalyticsTracker {
 
     // Also save locally as backup
     this.saveToLocalStorage(analyticsEvent);
-
-    // Log for debugging
-    console.log('📊 Analytics Event:', analyticsEvent);
+    await this.saveToDatabase(analyticsEvent);
   }
 
   // Get events from localStorage (for immediate viewing)
@@ -164,7 +175,6 @@ class AnalyticsTracker {
       }
       return await response.json();
     } catch (error) {
-      console.error('Failed to fetch database analytics:', error);
       // Fallback to localStorage
       return this.getLocalEvents();
     }
@@ -178,10 +188,8 @@ class AnalyticsTracker {
       
       // Clear localStorage
       localStorage.removeItem(this.LOCAL_ANALYTICS_KEY);
-      
-      console.log('🧹 All analytics cleared');
     } catch (error) {
-      console.error('Failed to clear analytics:', error);
+      // Silent failure for production
     }
   }
 }
@@ -190,6 +198,7 @@ export const analytics = new AnalyticsTracker();
 
 // Predefined event types for consistency
 export const ANALYTICS_EVENTS = {
+  WEBSITE_FIRST_VISIT: 'website_first_visit',
   UPGRADE_CLICKED: 'upgrade_button_clicked',
   PRICING_VIEWED: 'pricing_page_viewed',
   BUY_NOW_CLICKED: 'buy_now_clicked',
@@ -197,4 +206,5 @@ export const ANALYTICS_EVENTS = {
   DASHBOARD_VIEWED: 'dashboard_viewed',
   CURRENCY_CHANGED: 'currency_changed',
   PRICING_CALCULATED: 'pricing_calculated',
+  COMING_SOON_VIEWED: 'coming_soon_page_viewed',
 } as const;

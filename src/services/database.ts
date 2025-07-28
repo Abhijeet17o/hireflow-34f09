@@ -28,7 +28,6 @@ export interface User {
 export async function createUsersTable() {
   const db = initDatabase();
   if (!db) {
-    console.warn('Database not initialized - using local storage fallback');
     return;
   }
 
@@ -45,9 +44,8 @@ export async function createUsersTable() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
-    console.log('Users table created/verified');
   } catch (error) {
-    console.error('Error creating users table:', error);
+    // Silent failure for production
   }
 }
 
@@ -55,7 +53,6 @@ export async function createUsersTable() {
 export async function saveUser(userData: User): Promise<User | null> {
   const db = initDatabase();
   if (!db) {
-    console.warn('Database not available - using local storage');
     return userData;
   }
 
@@ -74,7 +71,6 @@ export async function saveUser(userData: User): Promise<User | null> {
     
     return result[0] || userData;
   } catch (error) {
-    console.error('Error saving user:', error);
     return userData; // Fallback to returning the original data
   }
 }
@@ -83,7 +79,6 @@ export async function saveUser(userData: User): Promise<User | null> {
 export async function getUser(email: string): Promise<User | null> {
   const db = initDatabase();
   if (!db) {
-    console.warn('Database not available - using local storage');
     return null;
   }
 
@@ -94,7 +89,6 @@ export async function getUser(email: string): Promise<User | null> {
     
     return result[0] || null;
   } catch (error) {
-    console.error('Error getting user:', error);
     return null;
   }
 }
@@ -103,7 +97,6 @@ export async function getUser(email: string): Promise<User | null> {
 export async function updateUserOnboarding(email: string, completed: boolean): Promise<boolean> {
   const db = initDatabase();
   if (!db) {
-    console.warn('Database not available - using local storage');
     return true; // Return true to not break the flow
   }
 
@@ -116,7 +109,6 @@ export async function updateUserOnboarding(email: string, completed: boolean): P
     
     return true;
   } catch (error) {
-    console.error('Error updating user onboarding:', error);
     return false;
   }
 }
